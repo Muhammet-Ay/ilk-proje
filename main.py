@@ -9,4 +9,7 @@ class User:
 
 user1 = User("Muhammet", 20)
 user1.introduce()
-        
+
+# create a function that adds two numbers
+def add_numbers(a, b):
+    return a + b
