@@ -1,6 +1,13 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
+
+class KullaniciOlustur(BaseModel):
+    isim: str
+    email: str
+    yas: int
+
 @app.get("/") #Ana sayfa için GET isteği
 def ana_sayfa():
     return {"message": "Merhaba, FastAPI!"} #Ana sayfaya erişildiğinde bu mesajı döndürür
@@ -19,3 +26,13 @@ def merhaba(dil:str):
     }
     return {"dil": dil, "selam": selamlar.get(dil, "Dil bulunmadı")} #Dil bulunmazsa varsayılan mesaj döndürür
 
+@app.post("/kullanici-olustur")
+def yeni_kullanici(kullanici: KullaniciOlustur):
+    return {
+        "mesaj": "Kullanıcı başarıyla oluşturuldu!",
+        "kullanici": {
+            "isim": kullanici.isim,
+            "email": kullanici.email,
+            "yas": kullanici.yas
+        }
+    }
