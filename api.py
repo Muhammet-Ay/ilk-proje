@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from database import SessionLocal, engine, KullaniciDB, Base
 
 app = FastAPI()
+# Veritabanı tablolarını oluştur
+Base.metadata.create_all(bind=engine)
 
 class KullaniciOlustur(BaseModel):
     isim: str
@@ -27,12 +30,36 @@ def merhaba(dil:str):
     return {"dil": dil, "selam": selamlar.get(dil, "Dil bulunmadı")} #Dil bulunmazsa varsayılan mesaj döndürür
 
 @app.post("/kullanici-olustur")
+@app.post("/kullanici-olustur")
 def yeni_kullanici(kullanici: KullaniciOlustur):
+    # Veritabanı oturumu başlat
+    db = SessionLocal()
+    
+    # Yeni kullanıcı oluştur
+    yeni_kullanici_db = KullaniciDB(
+        isim=kullanici.isim,
+        email=kullanici.email,
+        yas=kullanici.yas
+    )
+    
+    # Veritabanına ekle ve kaydet
+    db.add(yeni_kullanici_db)
+    db.commit()
+    db.refresh(yeni_kullanici_db)
+    db.close()
+    
     return {
-        "mesaj": "Kullanıcı başarıyla oluşturuldu!",
+        "mesaj": "Kullanıcı veritabanına kaydedildi!",
         "kullanici": {
-            "isim": kullanici.isim,
-            "email": kullanici.email,
-            "yas": kullanici.yas
+            "id": yeni_kullanici_db.id,
+            "isim": yeni_kullanici_db.isim,
+            "email": yeni_kullanici_db.email,
+            "yas": yeni_kullanici_db.yas
         }
     }
+@app.get("/kullanicilar")
+def tum_kullanicilar():
+    db = SessionLocal()
+    kullanicilar = db.query(KullaniciDB).all()
+    db.close()
+    return {"kullanicilar": kullanicilar}
